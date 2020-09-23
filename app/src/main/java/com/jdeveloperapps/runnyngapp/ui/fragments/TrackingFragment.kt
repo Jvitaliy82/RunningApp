@@ -15,6 +15,7 @@ import com.jdeveloperapps.runnyngapp.other.Constans.ACTION_START_OR_RESUME_SERVI
 import com.jdeveloperapps.runnyngapp.other.Constans.MAP_ZOOM
 import com.jdeveloperapps.runnyngapp.other.Constans.POLYLINE_COLOR
 import com.jdeveloperapps.runnyngapp.other.Constans.POLYLINE_WIDTH
+import com.jdeveloperapps.runnyngapp.other.TrackingUtility
 import com.jdeveloperapps.runnyngapp.services.Polyline
 import com.jdeveloperapps.runnyngapp.services.TrackingService
 import com.jdeveloperapps.runnyngapp.ui.viewmodels.MainViewModel
@@ -31,12 +32,14 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking) {
 
     private var map: GoogleMap? = null
 
+    private var currentTimeInMillis = 0L
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         mapView.onCreate(savedInstanceState)
 
         btnToggleRun.setOnClickListener {
-            toogleRun()
+            toggleRun()
         }
 
         mapView.getMapAsync {
@@ -57,9 +60,15 @@ class TrackingFragment : Fragment(R.layout.fragment_tracking) {
             addLatestPolyline()
             moveCameraToUser()
         })
+
+        TrackingService.timeRunInMillis.observe(viewLifecycleOwner, Observer {
+            currentTimeInMillis = it
+            val formattedTime = TrackingUtility.getFormattedStopWatchTime(currentTimeInMillis, true)
+            tvTimer.text = formattedTime
+        })
     }
 
-    private fun toogleRun() {
+    private fun toggleRun() {
         if (isTracking) {
             sendCommandToService(ACTION_PAUSE_SERVICE)
         } else {
